@@ -1,75 +1,104 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const [token, setToken] = useState(null);
 
-  const [isDark, setIsDark] = useState(
-    !document.body.classList.contains("light-mode")
-  );
-
+  // 🔁 Sync token when login/logout happens
   useEffect(() => {
-    const saved = localStorage.getItem("theme") || "dark";
-    setIsDark(saved === "dark");
+    const syncToken = () => {
+      setToken(localStorage.getItem("token"));
+    };
 
-    if (saved === "light") {
-      document.body.classList.add("light-mode");
-    } else {
-      document.body.classList.remove("light-mode");
-    }
+    syncToken(); // on mount
+
+    window.addEventListener("storage", syncToken);
+
+    return () => {
+      window.removeEventListener("storage", syncToken);
+    };
   }, []);
 
-  const toggleTheme = () => {
-    const isLight = document.body.classList.contains("light-mode");
-
-    if (isLight) {
-      document.body.classList.remove("light-mode");
-      localStorage.setItem("theme", "dark");
-      setIsDark(true);
-    } else {
-      document.body.classList.add("light-mode");
-      localStorage.setItem("theme", "light");
-      setIsDark(false);
-    }
+  const logout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    navigate("/login");
   };
 
   return (
-    <nav className="navbar">
-      {/* LOGO */}
-      <h1
-        onClick={() => navigate("/")}
+    <nav
+      style={{
+        height: "64px",
+        padding: "0 24px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "#0B0F14",
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
+      }}
+    >
+      <Link
+        to="/"
         style={{
-          fontSize: "22px",
+          fontSize: "20px",
           fontWeight: "700",
-          cursor: "pointer",
-          background: "linear-gradient(90deg, #6366F1, #A855F7)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          letterSpacing: "-0.5px",
-          transition: "text-shadow 0.2s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.target.style.textShadow =
-            "0 0 12px rgba(168,85,247,0.6)";
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.textShadow = "none";
+          color: "white",
+          textDecoration: "none",
         }}
       >
         CodeArena
-      </h1>
+      </Link>
 
-      {/* NAV LINKS */}
-      <div className="nav-links">
-        <Link to="/">Home</Link>
-        <Link to="/problems">Problems</Link>
-        <Link to="/login">Login</Link>
-        <Link to="/register">Register</Link>
+      <div style={{ display: "flex", gap: "18px", alignItems: "center" }}>
+        <Link to="/problems" style={linkStyle}>
+          Problems
+        </Link>
 
-        <button onClick={toggleTheme} className="theme-btn">
-          {isDark ? "☀️" : "🌙"}
-        </button>
+        {/* ✅ Show only when logged in */}
+        {token && (
+          <>
+            <Link to="/vault" style={linkStyle}>
+              Vault
+            </Link>
+
+            <Link to="/submissions" style={linkStyle}>
+              Submissions
+            </Link>
+          </>
+        )}
+
+        {!token ? (
+          <>
+            <Link to="/login" style={linkStyle}>
+              Login
+            </Link>
+            <Link to="/register" style={linkStyle}>
+              Register
+            </Link>
+          </>
+        ) : (
+          <button
+            onClick={logout}
+            style={{
+              background: "#ef4444",
+              color: "white",
+              border: "none",
+              padding: "6px 12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            Logout
+          </button>
+        )}
       </div>
     </nav>
   );
 }
+
+const linkStyle = {
+  color: "#9ca3af",
+  textDecoration: "none",
+  fontSize: "14px",
+};
