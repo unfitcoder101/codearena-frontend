@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import API_BASE from "../utils/api";
 
 
+
 const LANGUAGES = ["cpp", "js", "java"];
 
 const DEFAULT_CODE = {
@@ -43,6 +44,9 @@ export default function Solve() {
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState(null);
   const [error, setError] = useState("");
+  const [notes, setNotes] = useState("");
+  const [notesSaved, setNotesSaved] = useState(false);
+  const [savingNotes, setSavingNotes] = useState(false);
 
   // Fetch problem on load
   useEffect(() => {
@@ -160,6 +164,32 @@ export default function Solve() {
     }
   };
 
+  const saveNotes = async () => {
+    if (!submissionId) return;
+    const token = localStorage.getItem("token");
+    setSavingNotes(true);
+    setNotesSaved(false);
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/submissions/${submissionId}/notes`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ notes }),
+        }
+      );
+      if (res.ok) setNotesSaved(true);
+    } catch (err) {
+      console.error("Failed to save notes:", err);
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
   if (error && !problem) {
     return <div style={{ padding: 40, color: "#ef4444" }}>{error}</div>;
   }
@@ -180,7 +210,7 @@ export default function Solve() {
               ...styles.diffBadge,
               background: problem.difficulty === "Easy"
                 ? "rgba(34,197,94,0.1)" : problem.difficulty === "Medium"
-                ? "rgba(251,191,36,0.1)" : "rgba(239,68,68,0.1)",
+                  ? "rgba(251,191,36,0.1)" : "rgba(239,68,68,0.1)",
               color: problem.difficulty === "Easy" ? "#22c55e"
                 : problem.difficulty === "Medium" ? "#fbbf24" : "#ef4444",
             }}>
@@ -205,8 +235,10 @@ export default function Solve() {
           </Section>
 
           {problem.tags?.length > 0 && (
-            <div style={{ display: "flex", gap: "6px", marginTop: "20px",
-              flexWrap: "wrap" }}>
+            <div style={{
+              display: "flex", gap: "6px", marginTop: "20px",
+              flexWrap: "wrap"
+            }}>
               {problem.tags.map((tag) => (
                 <span key={tag} style={styles.tag}>{tag}</span>
               ))}
@@ -310,33 +342,43 @@ export default function Solve() {
                 {runResult.verdict === "CE"
                   ? "✗ Compilation Error"
                   : runResult.passed
-                  ? "✓ Sample test passed"
-                  : "✗ Wrong answer on sample"}
+                    ? "✓ Sample test passed"
+                    : "✗ Wrong answer on sample"}
               </div>
 
               {runResult.verdict !== "CE" && (
-                <div style={{ display: "grid",
-                  gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr", gap: "10px"
+                }}>
                   <div>
-                    <div style={{ color: "#6b7280", fontSize: "11px",
-                      marginBottom: "4px", textTransform: "uppercase" }}>
+                    <div style={{
+                      color: "#6b7280", fontSize: "11px",
+                      marginBottom: "4px", textTransform: "uppercase"
+                    }}>
                       Your output
                     </div>
-                    <pre style={{ margin: 0,
+                    <pre style={{
+                      margin: 0,
                       color: runResult.passed ? "#22c55e" : "#ef4444",
                       fontSize: "13px", background: "rgba(0,0,0,0.2)",
-                      padding: "8px", borderRadius: "6px" }}>
+                      padding: "8px", borderRadius: "6px"
+                    }}>
                       {runResult.output || "(empty)"}
                     </pre>
                   </div>
                   <div>
-                    <div style={{ color: "#6b7280", fontSize: "11px",
-                      marginBottom: "4px", textTransform: "uppercase" }}>
+                    <div style={{
+                      color: "#6b7280", fontSize: "11px",
+                      marginBottom: "4px", textTransform: "uppercase"
+                    }}>
                       Expected
                     </div>
-                    <pre style={{ margin: 0, color: "#22c55e",
+                    <pre style={{
+                      margin: 0, color: "#22c55e",
                       fontSize: "13px", background: "rgba(0,0,0,0.2)",
-                      padding: "8px", borderRadius: "6px" }}>
+                      padding: "8px", borderRadius: "6px"
+                    }}>
                       {runResult.expected || "(empty)"}
                     </pre>
                   </div>
@@ -344,8 +386,10 @@ export default function Solve() {
               )}
 
               {runResult.error && (
-                <pre style={{ margin: "8px 0 0", color: "#ef4444",
-                  fontSize: "12px" }}>
+                <pre style={{
+                  margin: "8px 0 0", color: "#ef4444",
+                  fontSize: "12px"
+                }}>
                   {runResult.error}
                 </pre>
               )}
@@ -368,33 +412,33 @@ export default function Solve() {
               }}>
                 {verdict === "AC" ? "✓ Accepted"
                   : verdict === "WA" ? "✗ Wrong Answer"
-                  : verdict === "TLE" ? "⏱ Time Limit Exceeded"
-                  : "✗ Compilation Error"}
+                    : verdict === "TLE" ? "⏱ Time Limit Exceeded"
+                      : "✗ Compilation Error"}
               </span>
             </div>
           )}
 
           {/* AI Interview button — appears after any verdict */}
-{verdict && submissionId && (
-  <button
-    onClick={() => navigate(`/interview/${submissionId}`)}
-    style={{
-      padding: "10px 20px",
-      background: "transparent",
-      color: "#a78bfa",
-      border: "1px solid rgba(167,139,250,0.3)",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontWeight: "600",
-      fontSize: "14px",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-    }}
-  >
-    🎤 Start AI Interview about this solution
-  </button>
-)}
+          {verdict && submissionId && (
+            <button
+              onClick={() => navigate(`/interview/${submissionId}`)}
+              style={{
+                padding: "10px 20px",
+                background: "transparent",
+                color: "#a78bfa",
+                border: "1px solid rgba(167,139,250,0.3)",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "14px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              🎤 Start AI Interview about this solution
+            </button>
+          )}
 
           {/* AI analyzing spinner */}
           {analysisStatus === "pending" && (
@@ -408,6 +452,80 @@ export default function Solve() {
 
           {/* AI feedback panel */}
           {analysis && <AIFeedbackPanel analysis={analysis} />}
+
+          {/* Personal notes — shown after AI analysis appears */}
+          {analysis && submissionId && (
+            <div style={{
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: "12px",
+              padding: "16px",
+            }}>
+              <h4 style={{
+                margin: "0 0 10px",
+                fontSize: "13px",
+                color: "#9ca3af",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}>
+                📝 My Notes
+              </h4>
+              <textarea
+                value={notes}
+                onChange={(e) => {
+                  setNotes(e.target.value);
+                  setNotesSaved(false);
+                }}
+                placeholder="Key insight: ... I struggled with: ... Next time I'll: ..."
+                style={{
+                  width: "100%",
+                  height: "100px",
+                  background: "#0d1117",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                  color: "white",
+                  fontSize: "13px",
+                  lineHeight: "1.5",
+                  resize: "vertical",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                }}
+              />
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: "8px",
+              }}>
+                {notesSaved && (
+                  <span style={{ color: "#22c55e", fontSize: "12px" }}>
+                    ✓ Saved
+                  </span>
+                )}
+                <button
+                  onClick={saveNotes}
+                  disabled={savingNotes}
+                  style={{
+                    marginLeft: "auto",
+                    background: "transparent",
+                    border: "1px solid rgba(99,102,241,0.3)",
+                    color: "#6366f1",
+                    padding: "6px 16px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    opacity: savingNotes ? 0.7 : 1,
+                  }}
+                >
+                  {savingNotes ? "Saving..." : "Save Notes"}
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
@@ -510,9 +628,11 @@ function AIFeedbackPanel({ analysis }) {
 function Section({ title, children }) {
   return (
     <div style={{ marginTop: "20px" }}>
-      <h4 style={{ color: "#6b7280", fontSize: "12px",
+      <h4 style={{
+        color: "#6b7280", fontSize: "12px",
         textTransform: "uppercase", letterSpacing: "0.5px",
-        marginBottom: "8px" }}>
+        marginBottom: "8px"
+      }}>
         {title}
       </h4>
       {children}
@@ -523,9 +643,11 @@ function Section({ title, children }) {
 function AISection({ title, icon, children }) {
   return (
     <div style={{ marginTop: "16px" }}>
-      <h4 style={{ color: "#9ca3af", fontSize: "12px",
+      <h4 style={{
+        color: "#9ca3af", fontSize: "12px",
         textTransform: "uppercase", letterSpacing: "0.5px",
-        marginBottom: "8px" }}>
+        marginBottom: "8px"
+      }}>
         {icon} {title}
       </h4>
       {children}
@@ -537,8 +659,10 @@ function ComplexityBadge({ label, value }) {
   return (
     <div style={styles.complexityBadge}>
       <span style={{ color: "#6b7280", fontSize: "11px" }}>{label}</span>
-      <span style={{ color: "#a5b4fc", fontWeight: "600",
-        fontSize: "14px" }}>{value}</span>
+      <span style={{
+        color: "#a5b4fc", fontWeight: "600",
+        fontSize: "14px"
+      }}>{value}</span>
     </div>
   );
 }

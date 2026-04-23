@@ -80,11 +80,28 @@ const radarData = data.radarData || [
 
       {/* Stat cards */}
       <div style={styles.statsGrid}>
-        <StatCard label="Problems Solved" value={stats.solvedCount} color="#22c55e" />
-        <StatCard label="Total Attempts" value={stats.attemptCount} color="#6366f1" />
-        <StatCard label="Success Rate" value={`${stats.successRate}%`} color="#fbbf24" />
-        <StatCard label="Vault Problems" value={vault.total} color="#a78bfa" />
-      </div>
+  <StatCard
+    label="Problems Solved"
+    value={stats.solvedCount}
+    color="#22c55e"
+  />
+  <StatCard
+    label="Total Attempts"
+    value={stats.attemptCount}
+    color="#6366f1"
+  />
+  <StatCard
+    label="Success Rate"
+    value={`${stats.successRate}%`}
+    color="#fbbf24"
+  />
+  <StatCard
+    label="Current Streak"
+    value={`${stats.currentStreak || 0} days`}
+    color="#f472b6"
+    sub={`Longest: ${stats.longestStreak || 0} days`}
+  />
+</div>
 
       {/* Verdict breakdown */}
       <div style={styles.verdictRow}>
@@ -235,13 +252,36 @@ const radarData = data.radarData || [
 
 // ── Helper components ──
 
-function StatCard({ label, value, color }) {
+function StatCard({ label, value, color, sub }) {
   return (
     <div style={styles.statCard}>
-      <span style={{ color: "#6b7280", fontSize: "12px", textTransform: "uppercase",
-        letterSpacing: "0.5px" }}>{label}</span>
-      <span style={{ color, fontSize: "32px", fontWeight: "700",
-        marginTop: "8px", display: "block" }}>{value}</span>
+      <span style={{
+        color: "#6b7280",
+        fontSize: "12px",
+        textTransform: "uppercase",
+        letterSpacing: "0.5px",
+      }}>
+        {label}
+      </span>
+      <span style={{
+        color,
+        fontSize: "32px",
+        fontWeight: "700",
+        marginTop: "8px",
+        display: "block",
+      }}>
+        {value}
+      </span>
+      {sub && (
+        <span style={{
+          color: "#4b5563",
+          fontSize: "11px",
+          marginTop: "4px",
+          display: "block",
+        }}>
+          {sub}
+        </span>
+      )}
     </div>
   );
 }
