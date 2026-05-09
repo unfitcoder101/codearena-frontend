@@ -45,6 +45,9 @@ export default function Navbar() {
             <Link to="/submissions" style={isActive("/submissions") ? styles.activeLink : styles.link}>
               Submissions
             </Link>
+            <Link to="/profile" style={isActive("/profile") ? styles.activeLink : styles.link}>
+              Profile
+            </Link>
           </>
         )}
 

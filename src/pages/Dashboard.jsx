@@ -46,10 +46,10 @@ export default function Dashboard() {
     );
   }
 
-  const { stats, vault, scoreTrend, weakPatterns, recentActivity } = data;
+  const { stats, vault, scoreTrend, weakPatterns, recentActivity, radarData: rawRadar, diffProgression} = data;
 
   // Use real radar data from API — falls back to zeros if no submissions yet
-const radarData = data.radarData || [
+const radarData = rawRadar || [
   { topic: "Arrays", score: 0 },
   { topic: "Strings", score: 0 },
   { topic: "DP", score: 0 },
@@ -145,6 +145,61 @@ const radarData = data.radarData || [
       {/* Charts row */}
       <div style={styles.chartsRow}>
 
+        {/* Difficulty progression */}
+{data.diffProgression?.length > 0 && (
+  <Section
+    title="Difficulty Progression"
+    subtitle="Your accepted solutions over time"
+  >
+    <div style={{ display: "flex", gap: "8px",
+      flexWrap: "wrap", padding: "8px 0" }}>
+      {data.diffProgression.map((d, i) => (
+        <div
+          key={i}
+          title={`${d.title} — ${d.date}`}
+          style={{
+            width: "28px",
+            height: "28px",
+            borderRadius: "6px",
+            background: d.difficulty === "Easy"
+              ? "rgba(34,197,94,0.3)"
+              : d.difficulty === "Medium"
+              ? "rgba(251,191,36,0.3)"
+              : "rgba(239,68,68,0.3)",
+            border: `1px solid ${
+              d.difficulty === "Easy"
+                ? "rgba(34,197,94,0.5)"
+                : d.difficulty === "Medium"
+                ? "rgba(251,191,36,0.5)"
+                : "rgba(239,68,68,0.5)"
+            }`,
+            cursor: "default",
+            flexShrink: 0,
+          }}
+        />
+      ))}
+    </div>
+    <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
+      {[
+        { label: "Easy", color: "rgba(34,197,94,0.5)" },
+        { label: "Medium", color: "rgba(251,191,36,0.5)" },
+        { label: "Hard", color: "rgba(239,68,68,0.5)" },
+      ].map((d) => (
+        <div key={d.label} style={{
+          display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{
+            width: "10px", height: "10px",
+            borderRadius: "2px", background: d.color,
+          }} />
+          <span style={{ color: "#6b7280", fontSize: "11px" }}>
+            {d.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  </Section>
+)}
+
         {/* Score trend */}
         <Section title="Code Quality Trend" subtitle="Your last submissions">
           {trendData.length === 0 ? (
@@ -209,6 +264,18 @@ const radarData = data.radarData || [
 </ResponsiveContainer>
         </Section>
       </div>
+
+      <Section title="Vault Summary" subtitle="Your problem library">
+  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+    <MiniStat label="Total" value={vault.total} />
+    <MiniStat label="Solved" value={vault.solved} color="#22c55e" />
+    <MiniStat
+      label="Needs Revision"
+      value={vault.needsRevision || 0}
+      color="#fbbf24"
+    />
+  </div>
+</Section>
 
       {/* Bottom row */}
       <div style={styles.bottomRow}>
@@ -496,3 +563,20 @@ const styles = {
     display: "block",
   },
 };
+
+function MiniStat({ label, value, color = "white" }) {
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      borderRadius: "10px",
+      padding: "14px 20px",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+    }}>
+      <span style={{ color: "#6b7280", fontSize: "13px" }}>{label}</span>
+      <span style={{ color, fontWeight: "700", fontSize: "20px" }}>{value}</span>
+    </div>
+  );
+}

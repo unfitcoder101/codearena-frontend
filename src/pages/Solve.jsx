@@ -47,6 +47,9 @@ export default function Solve() {
   const [notes, setNotes] = useState("");
   const [notesSaved, setNotesSaved] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
+  const [hint, setHint] = useState(null);
+const [hintLevel, setHintLevel] = useState(1);
+const [loadingHint, setLoadingHint] = useState(false);
 
   // Fetch problem on load
   useEffect(() => {
@@ -100,6 +103,32 @@ export default function Solve() {
     setLanguage(lang);
     setCode(savedCode[lang]);
   };
+
+  const getHint = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  setLoadingHint(true);
+  try {
+    const res = await fetch(`${API_BASE}/api/problems/${id}/hint`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ level: hintLevel }),
+    });
+    const data = await res.json();
+    if (data.hint) {
+      setHint(data.hint);
+      setHintLevel((prev) => Math.min(prev + 1, 3));
+    }
+  } catch (err) {
+    console.error("Failed to get hint:", err);
+  } finally {
+    setLoadingHint(false);
+  }
+};
 
   // Run against sample input only — no submission saved
   const handleRun = async () => {
@@ -316,7 +345,61 @@ export default function Solve() {
               {loading ? "Submitting..." : "Submit →"}
             </button>
           </div>
+              {/* Hint system */}
+<div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+  <button
+    onClick={getHint}
+    disabled={loadingHint}
+    style={{
+      background: "transparent",
+      border: "1px solid rgba(251,191,36,0.3)",
+      color: "#fbbf24",
+      padding: "7px 16px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontSize: "13px",
+      fontWeight: "600",
+      opacity: loadingHint ? 0.7 : 1,
+    }}
+  >
+    {loadingHint ? "Getting hint..."
+      : hintLevel === 1 ? "💡 Get Hint"
+      : hintLevel === 2 ? "💡 Stronger Hint"
+      : "💡 Final Hint"}
+  </button>
+  {hintLevel > 1 && (
+    <span style={{ color: "#4b5563", fontSize: "12px" }}>
+      Hint {hintLevel - 1}/3 used
+    </span>
+  )}
+</div>
 
+{hint && (
+  <div style={{
+    padding: "12px 16px",
+    background: "rgba(251,191,36,0.05)",
+    border: "1px solid rgba(251,191,36,0.15)",
+    borderRadius: "8px",
+  }}>
+    <span style={{
+      color: "#fbbf24",
+      fontSize: "11px",
+      fontWeight: "600",
+      textTransform: "uppercase",
+      letterSpacing: "0.5px",
+    }}>
+      Hint {hintLevel - 1}
+    </span>
+    <p style={{
+      color: "#fde68a",
+      fontSize: "14px",
+      lineHeight: "1.6",
+      margin: "6px 0 0",
+    }}>
+      {hint}
+    </p>
+  </div>
+)}
           {error && (
             <p style={{ color: "#ef4444", fontSize: "13px", margin: 0 }}>
               {error}

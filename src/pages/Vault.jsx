@@ -12,6 +12,9 @@ export default function Vault() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [platformFilter, setPlatformFilter] = useState("all");
+
 
   // Form state
   const [form, setForm] = useState({
@@ -57,8 +60,10 @@ export default function Vault() {
     const data = await res.json();
     if (!res.ok) { alert(data.message); return; }
 
-    setForm({ title: "", link: "", platform: "LeetCode",
-      difficulty: "Easy", tags: "", notes: "" });
+    setForm({
+      title: "", link: "", platform: "LeetCode",
+      difficulty: "Easy", tags: "", notes: ""
+    });
     setShowForm(false);
     fetchVault();
   };
@@ -88,17 +93,29 @@ export default function Vault() {
     const data = await res.json();
     if (data.hints) {
       setItems((prev) => prev.map((item) =>
-        item._id === id ? { ...item, aiHints: data.hints,
-          aiSummary: data.summary, aiStatus: "completed" } : item
+        item._id === id ? {
+          ...item, aiHints: data.hints,
+          aiSummary: data.summary, aiStatus: "completed"
+        } : item
       ));
     }
   };
 
-  const filtered = filter === "all" ? items
-    : filter === "solved" ? items.filter((i) => i.solved)
-    : items.filter((i) => !i.solved);
-
-  if (loading) return <div style={styles.page}><p style={{color:"#6b7280"}}>Loading vault...</p></div>;
+  const filtered = items
+    .filter((i) => {
+      if (filter === "solved") return i.solved;
+      if (filter === "unsolved") return !i.solved;
+      return true;
+    })
+    .filter((i) =>
+      platformFilter === "all" ? true : i.platform === platformFilter
+    )
+    .filter((i) =>
+      search === ""
+        ? true
+        : i.title.toLowerCase().includes(search.toLowerCase())
+    );
+  if (loading) return <div style={styles.page}><p style={{ color: "#6b7280" }}>Loading vault...</p></div>;
 
   return (
     <div style={styles.page}>
@@ -150,8 +167,10 @@ export default function Vault() {
           </div>
 
           <textarea
-            style={{ ...styles.input, height: "80px", resize: "vertical", width: "100%",
-              boxSizing: "border-box", marginTop: "8px" }}
+            style={{
+              ...styles.input, height: "80px", resize: "vertical", width: "100%",
+              boxSizing: "border-box", marginTop: "8px"
+            }}
             placeholder="Notes — your approach, key insight, what you learned..."
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -162,18 +181,59 @@ export default function Vault() {
       )}
 
       {/* Filter */}
-      <div style={styles.filterRow}>
+      <div style={{
+        display: "flex",
+        gap: "10px",
+        marginBottom: "20px",
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}>
+        <input
+          style={{
+            ...styles.input,
+            flex: 2,
+            minWidth: "200px",
+            padding: "8px 14px",
+          }}
+          placeholder="Search by title..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
         {["all", "solved", "unsolved"].map((f) => (
-          <button key={f} onClick={() => setFilter(f)} style={{
-            ...styles.filterBtn,
-            background: filter === f ? "rgba(99,102,241,0.2)" : "transparent",
-            color: filter === f ? "#6366f1" : "#9ca3af",
-            border: filter === f ? "1px solid rgba(99,102,241,0.3)"
-              : "1px solid rgba(255,255,255,0.07)",
-          }}>
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            style={{
+              ...styles.filterBtn,
+              background: filter === f
+                ? "rgba(99,102,241,0.2)" : "transparent",
+              color: filter === f ? "#6366f1" : "#9ca3af",
+              border: filter === f
+                ? "1px solid rgba(99,102,241,0.3)"
+                : "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
+
+        <select
+          style={{
+            ...styles.input,
+            padding: "8px 12px",
+            width: "auto",
+            cursor: "pointer",
+          }}
+          value={platformFilter}
+          onChange={(e) => setPlatformFilter(e.target.value)}
+        >
+          <option value="all">All Platforms</option>
+          {["LeetCode", "Codeforces", "GeeksForGeeks",
+            "HackerRank", "Other"].map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+        </select>
       </div>
 
       {/* Problem cards */}
@@ -218,29 +278,41 @@ function VaultCard({ item, onToggle, onDelete, onGetHints }) {
       {/* Card header */}
       <div style={styles.cardHeader}>
         <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px",
-            marginBottom: "6px", flexWrap: "wrap" }}>
-            <span style={{ color: "white", fontWeight: "600",
-              fontSize: "15px" }}>{item.title}</span>
+          <div style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            marginBottom: "6px", flexWrap: "wrap"
+          }}>
+            <span style={{
+              color: "white", fontWeight: "600",
+              fontSize: "15px"
+            }}>{item.title}</span>
             {item.solved && (
-              <span style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e",
+              <span style={{
+                background: "rgba(34,197,94,0.1)", color: "#22c55e",
                 fontSize: "10px", padding: "2px 8px", borderRadius: "10px",
-                fontWeight: "600" }}>SOLVED</span>
+                fontWeight: "600"
+              }}>SOLVED</span>
             )}
           </div>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center",
-            flexWrap: "wrap" }}>
+          <div style={{
+            display: "flex", gap: "8px", alignItems: "center",
+            flexWrap: "wrap"
+          }}>
             <span style={{ color: "#6b7280", fontSize: "12px" }}>{item.platform}</span>
-            <span style={{ color: diffColors[item.difficulty] || "#6b7280",
-              fontSize: "12px", fontWeight: "600" }}>{item.difficulty}</span>
+            <span style={{
+              color: diffColors[item.difficulty] || "#6b7280",
+              fontSize: "12px", fontWeight: "600"
+            }}>{item.difficulty}</span>
           </div>
         </div>
       </div>
 
       {/* Tags */}
       {item.tags?.length > 0 && (
-        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap",
-          marginBottom: "12px" }}>
+        <div style={{
+          display: "flex", gap: "4px", flexWrap: "wrap",
+          marginBottom: "12px"
+        }}>
           {item.tags.map((t) => (
             <span key={t} style={styles.tag}>{t}</span>
           ))}
@@ -254,10 +326,12 @@ function VaultCard({ item, onToggle, onDelete, onGetHints }) {
             {showNotes ? "Hide notes" : "Show notes"}
           </button>
           {showNotes && (
-            <p style={{ color: "#9ca3af", fontSize: "13px",
+            <p style={{
+              color: "#9ca3af", fontSize: "13px",
               lineHeight: "1.6", marginTop: "8px",
               padding: "10px", background: "rgba(255,255,255,0.02)",
-              borderRadius: "6px", whiteSpace: "pre-wrap" }}>
+              borderRadius: "6px", whiteSpace: "pre-wrap"
+            }}>
               {item.notes}
             </p>
           )}
@@ -273,16 +347,22 @@ function VaultCard({ item, onToggle, onDelete, onGetHints }) {
           {showHints && (
             <div style={{ marginTop: "8px" }}>
               {item.aiSummary && (
-                <p style={{ color: "#9ca3af", fontSize: "13px",
-                  marginBottom: "8px", fontStyle: "italic" }}>
+                <p style={{
+                  color: "#9ca3af", fontSize: "13px",
+                  marginBottom: "8px", fontStyle: "italic"
+                }}>
                   {item.aiSummary}
                 </p>
               )}
               {item.aiHints.map((hint, i) => (
-                <div key={i} style={{ display: "flex", gap: "8px",
-                  marginBottom: "6px", alignItems: "flex-start" }}>
-                  <span style={{ color: "#6366f1", fontWeight: "700",
-                    fontSize: "12px", flexShrink: 0 }}>H{i + 1}</span>
+                <div key={i} style={{
+                  display: "flex", gap: "8px",
+                  marginBottom: "6px", alignItems: "flex-start"
+                }}>
+                  <span style={{
+                    color: "#6366f1", fontWeight: "700",
+                    fontSize: "12px", flexShrink: 0
+                  }}>H{i + 1}</span>
                   <span style={{ color: "#d1d5db", fontSize: "13px" }}>{hint}</span>
                 </div>
               ))}
@@ -314,6 +394,33 @@ function VaultCard({ item, onToggle, onDelete, onGetHints }) {
           </button>
         )}
 
+        <button
+          onClick={async () => {
+            const res = await fetch(
+              `${API_BASE}/api/vault/${item._id}/revision`,
+              {
+                method: "PATCH",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+            const data = await res.json();
+            if (data.success) window.location.reload();
+          }}
+          style={{
+            ...styles.actionBtn,
+            color: item.needsRevision ? "#fbbf24" : "#6b7280",
+            borderColor: item.needsRevision
+              ? "rgba(251,191,36,0.3)"
+              : "rgba(255,255,255,0.08)",
+            background: item.needsRevision
+              ? "rgba(251,191,36,0.05)" : "transparent",
+          }}
+        >
+          {item.needsRevision ? "⚡ Needs Revision" : "Mark Revision"}
+        </button>
+
         <button onClick={onDelete} style={{
           ...styles.actionBtn, color: "#6b7280",
           borderColor: "rgba(255,255,255,0.08)",
@@ -327,9 +434,11 @@ function VaultCard({ item, onToggle, onDelete, onGetHints }) {
 
 function MiniStat({ label, value, color = "white" }) {
   return (
-    <div style={{ background: "rgba(255,255,255,0.03)",
+    <div style={{
+      background: "rgba(255,255,255,0.03)",
       border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px",
-      padding: "14px 20px", display: "flex", alignItems: "center", gap: "10px" }}>
+      padding: "14px 20px", display: "flex", alignItems: "center", gap: "10px"
+    }}>
       <span style={{ color: "#6b7280", fontSize: "13px" }}>{label}</span>
       <span style={{ color, fontWeight: "700", fontSize: "20px" }}>{value}</span>
     </div>
@@ -337,40 +446,66 @@ function MiniStat({ label, value, color = "white" }) {
 }
 
 const styles = {
-  page: { padding: "32px", background: "#0B0F14",
-    minHeight: "calc(100vh - 64px)", color: "white" },
-  header: { display: "flex", justifyContent: "space-between",
-    alignItems: "flex-start", marginBottom: "20px" },
+  page: {
+    padding: "32px", background: "#0B0F14",
+    minHeight: "calc(100vh - 64px)", color: "white"
+  },
+  header: {
+    display: "flex", justifyContent: "space-between",
+    alignItems: "flex-start", marginBottom: "20px"
+  },
   title: { fontSize: "28px", fontWeight: "700", margin: 0 },
   statsRow: { display: "flex", gap: "10px", marginBottom: "20px" },
-  form: { background: "rgba(255,255,255,0.03)",
+  form: {
+    background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: "12px", padding: "20px", marginBottom: "20px" },
+    borderRadius: "12px", padding: "20px", marginBottom: "20px"
+  },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" },
-  input: { padding: "10px 14px", background: "#0d1117", color: "white",
+  input: {
+    padding: "10px 14px", background: "#0d1117", color: "white",
     border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px",
-    fontSize: "14px", width: "100%", boxSizing: "border-box" },
-  addBtn: { background: "#6366f1", color: "white", border: "none",
+    fontSize: "14px", width: "100%", boxSizing: "border-box"
+  },
+  addBtn: {
+    background: "#6366f1", color: "white", border: "none",
     padding: "9px 18px", borderRadius: "8px", cursor: "pointer",
-    fontWeight: "600", fontSize: "14px" },
+    fontWeight: "600", fontSize: "14px"
+  },
   filterRow: { display: "flex", gap: "8px", marginBottom: "20px" },
-  filterBtn: { padding: "6px 16px", borderRadius: "8px",
-    cursor: "pointer", fontSize: "13px", fontWeight: "500" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-    gap: "16px" },
-  card: { background: "rgba(255,255,255,0.02)", border: "1px solid",
-    borderRadius: "12px", padding: "20px" },
-  cardHeader: { display: "flex", justifyContent: "space-between",
-    marginBottom: "10px" },
-  tag: { background: "rgba(99,102,241,0.1)", color: "#818cf8",
-    padding: "2px 8px", borderRadius: "4px", fontSize: "11px" },
+  filterBtn: {
+    padding: "6px 16px", borderRadius: "8px",
+    cursor: "pointer", fontSize: "13px", fontWeight: "500"
+  },
+  grid: {
+    display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+    gap: "16px"
+  },
+  card: {
+    background: "rgba(255,255,255,0.02)", border: "1px solid",
+    borderRadius: "12px", padding: "20px"
+  },
+  cardHeader: {
+    display: "flex", justifyContent: "space-between",
+    marginBottom: "10px"
+  },
+  tag: {
+    background: "rgba(99,102,241,0.1)", color: "#818cf8",
+    padding: "2px 8px", borderRadius: "4px", fontSize: "11px"
+  },
   cardActions: { display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "12px" },
-  openBtn: { color: "#6366f1", textDecoration: "none", fontSize: "13px",
+  openBtn: {
+    color: "#6366f1", textDecoration: "none", fontSize: "13px",
     fontWeight: "600", padding: "5px 12px", borderRadius: "6px",
-    background: "rgba(99,102,241,0.1)" },
-  actionBtn: { background: "transparent", border: "1px solid",
+    background: "rgba(99,102,241,0.1)"
+  },
+  actionBtn: {
+    background: "transparent", border: "1px solid",
     padding: "5px 12px", borderRadius: "6px", cursor: "pointer",
-    fontSize: "12px", fontWeight: "500" },
-  ghostBtn: { background: "transparent", border: "none", color: "#6366f1",
-    cursor: "pointer", fontSize: "12px", padding: 0, textDecoration: "underline" },
+    fontSize: "12px", fontWeight: "500"
+  },
+  ghostBtn: {
+    background: "transparent", border: "none", color: "#6366f1",
+    cursor: "pointer", fontSize: "12px", padding: 0, textDecoration: "underline"
+  },
 };

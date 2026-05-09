@@ -11,12 +11,14 @@ import Submissions from "./pages/Submissions";
 import Vault from "./pages/Vault";
 import Dashboard from "./pages/Dashboard";
 import CreateProblem from "./pages/CreateProblem";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
+        <Route path="/profile" element={<Profile />} />
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
