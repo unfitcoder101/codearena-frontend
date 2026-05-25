@@ -133,8 +133,7 @@ export default function Solve() {
   // Run against sample input only — no submission saved
   const handleRun = async () => {
     const token = localStorage.getItem("token");
-    if (!token) return setError("Please login first");
-
+    if (!token) { navigate("/login"); return; }
     setRunning(true);
     setRunResult(null);
     setError("");
@@ -161,8 +160,7 @@ export default function Solve() {
   // Submit against all hidden test cases — saves submission + triggers AI
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
-    if (!token) return setError("Please login first");
-
+   if (!token) { navigate("/login"); return; }
     setLoading(true);
     setVerdict(null);
     setAnalysis(null);
@@ -327,6 +325,43 @@ export default function Solve() {
               }}
             />
           </div>
+
+              {/* Show login prompt if not logged in */}
+{!localStorage.getItem("token") && (
+  <div style={{
+    padding: "12px 16px",
+    background: "rgba(99,102,241,0.06)",
+    border: "1px solid rgba(99,102,241,0.15)",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "12px",
+  }}>
+    <span style={{ color: "#9ca3af", fontSize: "13px" }}>
+      Login to submit code and get AI feedback
+    </span>
+    <button
+      onClick={() => navigate("/login")}
+      style={{
+        background: "#6366f1",
+        color: "white",
+        border: "none",
+        padding: "6px 16px",
+        borderRadius: "6px",
+        cursor: "pointer",
+        fontSize: "13px",
+        fontWeight: "600",
+        flexShrink: 0,
+      }}
+    >
+      Login →
+    </button>
+  </div>
+)}
+
+{/* Run + Submit buttons */}
+<div style={{ display: "flex", gap: "10px", alignItems: "center" }}></div>
 
           {/* Run + Submit buttons */}
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
