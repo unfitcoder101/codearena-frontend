@@ -81,13 +81,27 @@ export default function Submissions() {
                 </span>
 
                 <span style={{ flex: 1 }}>
-                  <Link
-                    to={`/solve/${s.problem?._id}`}
-                    style={styles.viewBtn}
-                  >
-                    View →
-                  </Link>
-                </span>
+  <Link
+    to={`/solve/${s.problem?._id}`}
+    style={styles.viewBtn}
+  >
+    View →
+  </Link>
+  {s.notes && (
+    <div style={{
+      marginTop: "6px",
+      padding: "6px 10px",
+      background: "rgba(99,102,241,0.05)",
+      borderRadius: "6px",
+      border: "1px solid rgba(99,102,241,0.1)",
+      fontSize: "12px",
+      color: "#9ca3af",
+      maxWidth: "200px",
+    }}>
+      📝 {s.notes.slice(0, 60)}{s.notes.length > 60 ? "..." : ""}
+    </div>
+  )}
+</span>
               </div>
             );
           })}
