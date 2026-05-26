@@ -2,6 +2,18 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API_BASE from "../utils/api";
 
+const token = localStorage.getItem("token");
+const [userId, setUserId] = useState(null);
+
+useEffect(() => {
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      setUserId(payload.id);
+    } catch (_) {}
+  }
+}, [token]);
+
 const DIFFICULTY_COLORS = {
   Easy: { bg: "rgba(34,197,94,0.1)", color: "#22c55e" },
   Medium: { bg: "rgba(251,191,36,0.1)", color: "#fbbf24" },
@@ -39,19 +51,19 @@ export default function Problems() {
         </div>
 
         <Link
-  to="/create-problem"
-  style={{
-    background: "#6366f1",
-    color: "white",
-    textDecoration: "none",
-    padding: "8px 18px",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontWeight: "600",
-  }}
->
-  + Create Problem
-</Link>
+          to="/create-problem"
+          style={{
+            background: "#6366f1",
+            color: "white",
+            textDecoration: "none",
+            padding: "8px 18px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: "600",
+          }}
+        >
+          + Create Problem
+        </Link>
 
         {/* Difficulty filter */}
         <div style={styles.filters}>
@@ -128,10 +140,33 @@ export default function Problems() {
                   ))}
                 </span>
 
-                <span style={{ flex: 1 }}>
+                <span style={{ flex: 1, display: "flex", gap: "8px", alignItems: "center" }}>
                   <Link to={`/solve/${p._id}`} style={styles.solveBtn}>
                     Solve →
                   </Link>
+                  {token && p.createdBy === userId && (
+                    <button
+                      onClick={async () => {
+                        if (!confirm("Delete this problem?")) return;
+                        await fetch(`${API_BASE}/api/problems/${p._id}`, {
+                          method: "DELETE",
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                        setProblems((prev) => prev.filter((prob) => prob._id !== p._id));
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "1px solid rgba(239,68,68,0.2)",
+                        color: "#ef4444",
+                        padding: "4px 10px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "11px",
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
                 </span>
               </div>
             );
