@@ -403,33 +403,28 @@ export default function Solve() {
           </div>
           {/* Hint system */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-           <button
-  onClick={getHint}
-  disabled={loadingHint || hintLevel > 3}
-  style={{
-    background: "transparent",
-    border: "1px solid rgba(251,191,36,0.3)",
-    color: hintLevel > 3 ? "#4b5563" : "#fbbf24",
-    padding: "7px 16px",
-    borderRadius: "8px",
-    cursor: hintLevel > 3 ? "not-allowed" : "pointer",
-    fontSize: "13px",
-    fontWeight: "600",
-    opacity: loadingHint || hintLevel > 3 ? 0.5 : 1,
-  }}
->
-  {loadingHint ? "Getting hint..."
-    : hintLevel === 1 ? "💡 Get Hint"
-    : hintLevel === 2 ? "💡 Stronger Hint"
-    : hintLevel === 3 ? "💡 Final Hint"
-    : "✓ All hints used"}
-</button>
+            <button
+              onClick={getHint}
+              disabled={loadingHint || hintLevel > 3}
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(251,191,36,0.3)",
+                color: hintLevel > 3 ? "#4b5563" : "#fbbf24",
+                padding: "7px 16px",
+                borderRadius: "8px",
+                cursor: hintLevel > 3 ? "not-allowed" : "pointer",
+                fontSize: "13px",
+                fontWeight: "600",
+                opacity: loadingHint || hintLevel > 3 ? 0.5 : 1,
+              }}
+            >
               {loadingHint ? "Getting hint..."
                 : hintLevel === 1 ? "💡 Get Hint"
                   : hintLevel === 2 ? "💡 Stronger Hint"
                     : hintLevel === 3 ? "💡 Final Hint"
-                      : "No more hints"}
+                      : "✓ All hints used"}
             </button>
+
             {hintLevel > 1 && (
               <span style={{ color: "#4b5563", fontSize: "12px" }}>
                 Hint {hintLevel - 1}/3 used

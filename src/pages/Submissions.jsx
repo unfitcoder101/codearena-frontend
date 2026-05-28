@@ -88,19 +88,8 @@ export default function Submissions() {
     View →
   </Link>
   {s.notes && (
-    <div style={{
-      marginTop: "6px",
-      padding: "6px 10px",
-      background: "rgba(99,102,241,0.05)",
-      borderRadius: "6px",
-      border: "1px solid rgba(99,102,241,0.1)",
-      fontSize: "12px",
-      color: "#9ca3af",
-      maxWidth: "200px",
-    }}>
-      📝 {s.notes.slice(0, 60)}{s.notes.length > 60 ? "..." : ""}
-    </div>
-  )}
+  <ExpandableNote note={s.notes} />
+)}
 </span>
               </div>
             );
@@ -118,6 +107,43 @@ function timeAgo(dateStr) {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function ExpandableNote({ note }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: "6px" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          background: "transparent",
+          border: "1px solid rgba(99,102,241,0.2)",
+          color: "#6366f1",
+          padding: "3px 10px",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "11px",
+        }}
+      >
+        📝 {open ? "Hide notes" : "Show notes"}
+      </button>
+      {open && (
+        <div style={{
+          marginTop: "6px",
+          padding: "8px 12px",
+          background: "rgba(99,102,241,0.05)",
+          borderRadius: "6px",
+          border: "1px solid rgba(99,102,241,0.1)",
+          fontSize: "12px",
+          color: "#9ca3af",
+          maxWidth: "300px",
+          whiteSpace: "pre-wrap",
+        }}>
+          {note}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const styles = {
