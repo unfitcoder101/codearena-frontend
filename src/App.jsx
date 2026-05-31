@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SubmissionDetail from "./pages/SubmissionDetail";
 import Navbar from "./components/Navbar";
-
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Interview from "./pages/Interview";
@@ -25,6 +25,7 @@ export default function App() {
         <Route path="/problems" element={<Problems />} />
         <Route path="/solve/:id" element={<Solve />} />
         <Route path="/submissions" element={<Submissions />} />
+       <Route path="/submissions/:id" element={<SubmissionDetail />} />
         <Route path="/create-problem" element={<CreateProblem />} />
         <Route path="/interview/:submissionId" element={<Interview />} />
         <Route path="/vault" element={<Vault />} />

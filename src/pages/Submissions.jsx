@@ -82,11 +82,11 @@ export default function Submissions() {
 
                 <span style={{ flex: 1 }}>
   <Link
-    to={`/solve/${s.problem?._id}`}
-    style={styles.viewBtn}
-  >
-    View →
-  </Link>
+  to={`/submissions/${s._id}`}
+  style={styles.viewBtn}
+>
+  View →
+</Link>
   {s.notes && (
   <ExpandableNote note={s.notes} />
 )}
