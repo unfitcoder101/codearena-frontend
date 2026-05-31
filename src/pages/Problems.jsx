@@ -2,18 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API_BASE from "../utils/api";
 
-const token = localStorage.getItem("token");
-const [userId, setUserId] = useState(null);
-
-useEffect(() => {
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUserId(payload.id);
-    } catch (_) {}
-  }
-}, [token]);
-
 const DIFFICULTY_COLORS = {
   Easy: { bg: "rgba(34,197,94,0.1)", color: "#22c55e" },
   Medium: { bg: "rgba(251,191,36,0.1)", color: "#fbbf24" },
@@ -24,9 +12,23 @@ export default function Problems() {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
+  const [userId, setUserId] = useState(null);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/problems`)
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setUserId(payload.id);
+      } catch (_) {}
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/problems`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((res) => res.json())
       .then((data) => {
         setProblems(data.problems || []);
@@ -41,7 +43,6 @@ export default function Problems() {
 
   return (
     <div style={styles.page}>
-      {/* Header */}
       <div style={styles.header}>
         <div>
           <h1 style={styles.title}>Problems</h1>
@@ -65,7 +66,6 @@ export default function Problems() {
           + Create Problem
         </Link>
 
-        {/* Difficulty filter */}
         <div style={styles.filters}>
           {["All", "Easy", "Medium", "Hard"].map((d) => (
             <button
@@ -86,19 +86,14 @@ export default function Problems() {
         </div>
       </div>
 
-      {/* Problem list */}
       {loading ? (
         <p style={{ color: "#9ca3af" }}>Loading problems...</p>
       ) : filtered.length === 0 ? (
         <div style={styles.empty}>
           <p style={{ color: "#9ca3af", fontSize: "16px" }}>No problems yet.</p>
-          <p style={{ color: "#6b7280", fontSize: "14px", marginTop: "8px" }}>
-            Add problems via the API or admin panel.
-          </p>
         </div>
       ) : (
         <div style={styles.table}>
-          {/* Table header */}
           <div style={styles.tableHeader}>
             <span style={{ flex: 3 }}>Title</span>
             <span style={{ flex: 1 }}>Difficulty</span>
@@ -106,7 +101,6 @@ export default function Problems() {
             <span style={{ flex: 1 }}>Action</span>
           </div>
 
-          {/* Rows */}
           {filtered.map((p, i) => {
             const diff = DIFFICULTY_COLORS[p.difficulty] || DIFFICULTY_COLORS.Easy;
             return (
@@ -130,7 +124,7 @@ export default function Problems() {
                     fontSize: "12px",
                     fontWeight: "600",
                   }}>
-                    {p.difficulty}
+                    {p.difficulty || "Easy"}
                   </span>
                 </span>
 
@@ -152,7 +146,9 @@ export default function Problems() {
                           method: "DELETE",
                           headers: { Authorization: `Bearer ${token}` },
                         });
-                        setProblems((prev) => prev.filter((prob) => prob._id !== p._id));
+                        setProblems((prev) =>
+                          prev.filter((prob) => prob._id !== p._id)
+                        );
                       }}
                       style={{
                         background: "transparent",
@@ -192,20 +188,9 @@ const styles = {
     flexWrap: "wrap",
     gap: "16px",
   },
-  title: {
-    fontSize: "28px",
-    fontWeight: "700",
-    margin: 0,
-  },
-  subtitle: {
-    color: "#6b7280",
-    fontSize: "14px",
-    marginTop: "6px",
-  },
-  filters: {
-    display: "flex",
-    gap: "8px",
-  },
+  title: { fontSize: "28px", fontWeight: "700", margin: 0 },
+  subtitle: { color: "#6b7280", fontSize: "14px", marginTop: "6px" },
+  filters: { display: "flex", gap: "8px" },
   filterBtn: {
     padding: "6px 16px",
     borderRadius: "8px",
@@ -233,7 +218,6 @@ const styles = {
     padding: "16px 20px",
     alignItems: "center",
     borderTop: "1px solid rgba(255,255,255,0.04)",
-    transition: "background 0.15s",
   },
   tag: {
     background: "rgba(99,102,241,0.1)",
@@ -251,8 +235,5 @@ const styles = {
     borderRadius: "6px",
     background: "rgba(99,102,241,0.1)",
   },
-  empty: {
-    textAlign: "center",
-    padding: "80px 20px",
-  },
+  empty: { textAlign: "center", padding: "80px 20px" },
 };
