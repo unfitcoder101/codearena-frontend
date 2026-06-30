@@ -2,10 +2,10 @@
 
 > Replace your Excel sheet and Google Doc. One system for everything.
 
-🔗 **Live Demo**: https://codearena-frontend-lovat.vercel.app
-📦 **Backend**: https://github.com/unfitcoder101/codearena-backend
+🔗 **Live Demo**: https://codearena-frontend-lovat.vercel.app                                                            
+📦 **Backend**: https://github.com/unfitcoder101/codearena-backend                                                          
 🎨 **Frontend**: https://github.com/unfitcoder101/codearena-frontend
-
+                        
 ---
 
 ## The Problem I Built This To Solve
