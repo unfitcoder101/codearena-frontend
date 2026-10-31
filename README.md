@@ -36,22 +36,21 @@ LeetCode tests you. CodeArena teaches you.
 
 User code runs in Docker containers with hard isolation:
 - `--network none` — zero internet access
-- `--memory=128m` — memory cap prevents memory bombs
+- `--memory=256m` — memory cap prevents memory bombs
 - `--cpus=0.5` — CPU cap prevents CPU exhaustion
-- `--ulimit nproc=50` — prevents fork bombs
-- `--read-only` filesystem — no host access
-- 5 second timeout via `Promise.race`
+- `--ulimit nproc` (50–100 per language) — limits process count against fork bombs
+- Per-language timeout (JS 5s, Java 8s, C++ 10s) — the container process is killed when time runs out
 - 64KB output cap prevents output flooding
 
-Built entirely from scratch in Node.js. No third-party judge locally. Production uses Judge0 API because Render's free tier doesn't support Docker-in-Docker — this was a deliberate infrastructure tradeoff, not a limitation of the engine itself.
+Built entirely from scratch in Node.js. No third-party judge locally. Production uses Judge0 API because the backend runs on Vercel (serverless), which can't run Docker — this was a deliberate infrastructure tradeoff, not a limitation of the engine itself.
 
 **🤖 Async AI Pipeline With Self-Correction**
 
-Every submission triggers a background AI analysis using Groq's LLaMA 3.3 70B:
+Every submission triggers a background AI analysis using Groq's Groq (openai/gpt-oss-120b):
 
 1. Submission saved → verdict returned to user immediately
 2. Analysis job fires async — user never waits
-3. Gemini builds verdict-aware prompt
+3. Prompt builder creates a verdict-aware prompt
 4. Response validated with Zod schema
 5. If validation fails → error sent back to model for self-correction
 6. Frontend polls every 3 seconds until complete
@@ -87,7 +86,6 @@ Save problems from LeetCode, Codeforces, anywhere:
 - Topic radar chart — accuracy across Arrays, DP, Graphs, Trees, etc — computed from real submission data
 - Code quality trend line — AI score over last 20 submissions
 - Streak counter — current and longest streak
-- Weak pattern detection — AI tracks recurring mistakes
 - Difficulty progression — visual of Easy → Medium → Hard over time
 
 ---
@@ -107,7 +105,7 @@ User submits code
   Submission Controller
   ├── Save submission (PENDING)
   ├── Create Analysis placeholder
-  ├── Fire AI analyzer (async, non-blocking)
+  ├──   ├── Fire AI analyzer (async, not awaited)
   └── Run Judge
            │
            ▼
@@ -126,7 +124,7 @@ User submits code
      AI Analyzer Pipeline
      ├── Fetch submission + problem
      ├── Build verdict-aware prompt
-     ├── Call Groq LLaMA 3.3 70B
+     ├── Call Groq (openai/gpt-oss-120b)
      ├── Validate with Zod schema
      ├── Self-correct if invalid
      └── Save to Analysis collection
@@ -138,12 +136,11 @@ User submits code
 
 | Threat | Defense |
 |---|---|
-| Fork bomb | `--ulimit nproc=50` |
-| Memory exhaustion | `--memory=128m` |
+| Fork bomb | `--ulimit nproc` (50–100 per language) |
+| Memory exhaustion | `--memory=256m` |
 | CPU exhaustion | `--cpus=0.5` |
 | Network access | `--network none` |
-| Filesystem access | `--read-only` + `--tmpfs /tmp` |
-| Infinite loops | 5s timeout via `Promise.race` |
+| Infinite loops | Per-language timeout kills the container process (JS 5s, Java 8s, C++ 10s) |
 | Output flooding | 64KB output cap |
 | Brute force login | Rate limiter 10 req/15min on auth routes |
 | Mass API abuse | Helmet + global rate limiter |
@@ -159,12 +156,12 @@ User submits code
 | Backend | Node.js + Express | Async-first, perfect for concurrent executions |
 | Database | MongoDB Atlas | Document model fits submission/analysis structure |
 | Auth | JWT + bcrypt | Stateless, scales horizontally |
-| AI | Groq LLaMA 3.3 70B | Fast inference, free tier sufficient |
+| AI | Groq (openai/gpt-oss-120b) | Fast inference, free tier sufficient |
 | Validation | Zod | Runtime schema validation on AI responses |
 | Local execution | Docker | Full isolation, built from scratch |
-| Production execution | Judge0 | Render free tier doesn't support Docker-in-Docker |
+| Production execution | Judge0 | Vercel (serverless) can't run Docker |
 | Frontend deploy | Vercel | Auto-deploy on push |
-| Backend deploy | Render | Free tier with UptimeRobot keepalive |
+| Backend deploy | Vercel (serverless) | Auto-deploy on push, no server to maintain |
 
 ---
 
@@ -204,6 +201,7 @@ FRONTEND_URL=http://localhost:5173
 - **WebSocket real-time AI push** — replace polling with instant push when analysis completes
 - **AWS EC2 deployment** — run Docker sandbox in production instead of Judge0
 - **Spaced repetition** — surface problems due for revision based on forgetting curve
+- **Weak pattern detection** — find recurring mistakes across submissions
 - **Mock interview sessions** — timed full interview simulations with scoring
 
 ---
